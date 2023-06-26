@@ -1,5 +1,7 @@
 //model js is implemented to interact with api and return it to controller
 import { async } from 'regenerator-runtime';
+import { API_URL } from './config';
+import { getJSON } from './helper';
 export const state = {
   recipe: {}, //recipe object;
 };
@@ -7,12 +9,7 @@ export const state = {
 //load recipe changes the state recipe
 export const loadRecipe = async function (id) {
   try {
-    const res = await fetch(
-      `https://forkify-api.herokuapp.com/api/v2/recipes/${id}`
-    );
-    const data = await res.json(); //coverting body to json
-    if (!res.ok) throw new Error(`${data.message} , ${res.success}`);
-
+    const data = await getJSON(`${API_URL}${id}`);
     const { recipe } = data.data; //new object to  get rid of underscores
     state.recipe = {
       id: recipe.id,
@@ -24,8 +21,7 @@ export const loadRecipe = async function (id) {
       cookingTime: recipe.cooking_time,
       ingredients: recipe.ingredients,
     };
-    console.log(state.recipe);
   } catch (err) {
-    alert(err.message);
+    console.error(err);
   }
 };

@@ -400,13 +400,6 @@ function _interopRequireWildcard(obj, nodeInterop) { if (!nodeInterop && obj && 
 //for all the browser
 
 const recipeContainer = document.querySelector('.recipe');
-const timeout = function (s) {
-  return new Promise(function (_, reject) {
-    setTimeout(function () {
-      reject(new Error(`Request took too long! Timeout after ${s} second`));
-    }, s * 1000);
-  });
-};
 
 // https://forkify-api.herokuapp.com/v2
 
@@ -2013,6 +2006,8 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.state = exports.loadRecipe = void 0;
 var _regeneratorRuntime = require("regenerator-runtime");
+var _config = require("./config");
+var _helper = require("./helper");
 //model js is implemented to interact with api and return it to controller
 
 const state = {
@@ -2023,9 +2018,7 @@ const state = {
 exports.state = state;
 const loadRecipe = async function (id) {
   try {
-    const res = await fetch(`https://forkify-api.herokuapp.com/api/v2/recipes/${id}`);
-    const data = await res.json(); //coverting body to json
-    if (!res.ok) throw new Error(`${data.message} , ${res.success}`);
+    const data = await (0, _helper.getJSON)(`${_config.API_URL}${id}`);
     const {
       recipe
     } = data.data; //new object to  get rid of underscores
@@ -2039,13 +2032,12 @@ const loadRecipe = async function (id) {
       cookingTime: recipe.cooking_time,
       ingredients: recipe.ingredients
     };
-    console.log(state.recipe);
   } catch (err) {
-    alert(err.message);
+    console.error(err);
   }
 };
 exports.loadRecipe = loadRecipe;
-},{"regenerator-runtime":"e155e0d3930b156f86c48e8d05522b16"}],"e155e0d3930b156f86c48e8d05522b16":[function(require,module,exports) {
+},{"regenerator-runtime":"e155e0d3930b156f86c48e8d05522b16","./config":"09212d541c5c40ff2bd93475a904f8de","./helper":"ca5e72bede557533b2de19db21a2a688"}],"e155e0d3930b156f86c48e8d05522b16":[function(require,module,exports) {
 /**
  * Copyright (c) 2014-present, Facebook, Inc.
  *
@@ -2808,7 +2800,50 @@ try {
   }
 }
 
-},{}],"bcae1aced0301b01ccacb3e6f7dfede8":[function(require,module,exports) {
+},{}],"09212d541c5c40ff2bd93475a904f8de":[function(require,module,exports) {
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.TIME_OUT = exports.API_URL = void 0;
+//all constants that need to be used in project
+
+const API_URL = 'https://forkify-api.herokuapp.com/api/v2/recipes/';
+exports.API_URL = API_URL;
+const TIME_OUT = 10;
+exports.TIME_OUT = TIME_OUT;
+},{}],"ca5e72bede557533b2de19db21a2a688":[function(require,module,exports) {
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.getJSON = void 0;
+var _config = require("./config");
+//all function that need to be called again and again
+
+const timeout = function (s) {
+  //timer if data fetching from the url is taking long so we can handle it
+  return new Promise(function (_, reject) {
+    setTimeout(function () {
+      reject(new Error(`Request took too long! Timeout after ${s} second`));
+    }, s * 1000);
+  });
+};
+const getJSON = async function (url) {
+  try {
+    const fetchpro = fetch(url);
+    const res = await Promise.race([fetchpro, timeout(_config.TIME_OUT)]); // if the timeout wins then we will throw the error
+    const data = await res.json(); //coverting body to json
+    if (!res.ok) throw new Error(`${data.message} , ${res.success}`);
+    return data;
+  } catch (err) {
+    throw err;
+  }
+};
+exports.getJSON = getJSON;
+},{"./config":"09212d541c5c40ff2bd93475a904f8de"}],"bcae1aced0301b01ccacb3e6f7dfede8":[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
