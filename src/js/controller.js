@@ -1,6 +1,8 @@
 //importing icons
 
 import icons from 'url:../img/icons.svg';
+import 'core-js/stable'; //for all the browser
+import 'regenerator-runtime/runtime';
 
 const recipeContainer = document.querySelector('.recipe');
 
@@ -13,14 +15,24 @@ const timeout = function (s) {
 };
 
 // https://forkify-api.herokuapp.com/v2
-
+const renderSpinner = function (parentEl) {
+  const markup = `
+  <div class="spinner">
+  <svg>
+    <use href="${icons}#icon-loader"></use>
+  </svg>
+</div>`;
+  parentEl.innerHTML = '';
+  parentEl.insertAdjacentHTML('afterbegin', markup);
+};
 ///////////////////////////////////////
 const showRecipe = async function () {
   try {
+    renderSpinner(recipeContainer); //loading animation until we fetch the data
     const res = await fetch(
       'https://forkify-api.herokuapp.com/api/v2/recipes/5ed6604591c37cdc054bc886'
     );
-    const data = await res.json(); //coverting body to json
+    const data = await res.json(); //coverting body to jsond
     if (!res.ok) throw new Error(`${data.message} , ${res.success}`);
 
     let { recipe } = data.data; //new object to  get rid of underscores
@@ -120,7 +132,7 @@ const showRecipe = async function () {
       }</span>. Please check out
       directions at their website.
     </p>
-    <
+    <a
       class="btn--small recipe__btn"
       href="${recipe.sourceUrl}"
       target="_blank"
