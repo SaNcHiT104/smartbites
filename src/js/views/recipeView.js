@@ -2,7 +2,7 @@
 import icons from 'url:../../img/icons.svg';
 
 //importing fractional for 0.5 ->1/2 in ingredients
-import { Fractional } from 'fractional';
+import fracty from 'fracty';
 
 class RecipeView {
   #parentElement = document.querySelector('.recipe');
@@ -19,7 +19,7 @@ class RecipeView {
     this.#parentElement.innerHTML = '';
   }
   //for render animation
-  renderSpinner = function () {
+  renderSpinner() {
     const markup = `
     <div class="spinner">
     <svg>
@@ -28,7 +28,7 @@ class RecipeView {
   </div>`;
     this.#clear();
     this.#parentElement.insertAdjacentHTML('afterbegin', markup);
-  };
+  }
   #generateMarkup() {
     return `
     <figure class="recipe__fig">
@@ -122,7 +122,7 @@ class RecipeView {
           <use href="${icons}#icon-check"></use>
         </svg>
         <div class="recipe__quantity">${
-          ing.quantity ? new Fraction(ing.quantity).toString() : ''
+          ing.quantity ? fracty(ing.quantity).toString() : ''
         }</div>
         <div class="recipe__description">
           <span class="recipe__unit">${ing.unit}</span>
@@ -131,3 +131,4 @@ class RecipeView {
       </li>`;
   }
 }
+export default new RecipeView(); //exporting class

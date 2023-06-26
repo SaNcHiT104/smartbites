@@ -1,5 +1,6 @@
 import * as model from './model.js'; //import everything from model
 import recipeView from './views/recipeView.js';
+import icons from 'url:../img/icons.svg';
 import 'core-js/stable'; //for all the browser
 import 'regenerator-runtime/runtime';
 
@@ -12,22 +13,32 @@ const timeout = function (s) {
     }, s * 1000);
   });
 };
+
+// https://forkify-api.herokuapp.com/v2
+
+const renderSpinner = function (parentEl) {
+  const markup = `
+  <div class="spinner">
+  <svg>
+    <use href="${icons}#icon-loader"></use>
+  </svg>
+</div>`;
+  parentEl.innerHTML = '';
+  parentEl.insertAdjacentHTML('afterbegin', markup);
+};
 ///////////////////////////////////////
-const controlRecipes = async function () {
+const showRecipe = async function () {
   try {
-    const id = window.location.hash.slice(1); //removing # from the id
+    const id = window.location.hash.slice(1); //getting hash and removing #
     if (!id) return;
     recipeView.renderSpinner(); //loading animation until we fetch the data
-
-    //loading recipe
-    await model.loadRecipe(id); //returning async function so need to await => filling recipe object in model
-    //rendering recipe
+    //load recipe
+    await model.loadRecipe(id);
+    //rendering recipie
     recipeView.render(model.state.recipe);
-  } catch (error) {
+  } catch (err) {
     alert(err.message);
   }
 };
-//hashchange
-['hashchange', 'load'].forEach(ev =>
-  window.addEventListener(ev, controlRecipes)
-);
+
+['hashchange', 'load'].forEach(ev => window.addEventListener(ev, showRecipe));

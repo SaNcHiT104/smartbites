@@ -391,6 +391,7 @@ module.exports.resolve = resolve;
 require("core-js/modules/web.immediate.js");
 var model = _interopRequireWildcard(require("./model.js"));
 var _recipeView = _interopRequireDefault(require("./views/recipeView.js"));
+var _icons = _interopRequireDefault(require("url:../img/icons.svg"));
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 function _getRequireWildcardCache(nodeInterop) { if (typeof WeakMap !== "function") return null; var cacheBabelInterop = new WeakMap(); var cacheNodeInterop = new WeakMap(); return (_getRequireWildcardCache = function (nodeInterop) { return nodeInterop ? cacheNodeInterop : cacheBabelInterop; })(nodeInterop); }
 function _interopRequireWildcard(obj, nodeInterop) { if (!nodeInterop && obj && obj.__esModule) { return obj; } if (obj === null || typeof obj !== "object" && typeof obj !== "function") { return { default: obj }; } var cache = _getRequireWildcardCache(nodeInterop); if (cache && cache.has(obj)) { return cache.get(obj); } var newObj = {}; var hasPropertyDescriptor = Object.defineProperty && Object.getOwnPropertyDescriptor; for (var key in obj) { if (key !== "default" && Object.prototype.hasOwnProperty.call(obj, key)) { var desc = hasPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : null; if (desc && (desc.get || desc.set)) { Object.defineProperty(newObj, key, desc); } else { newObj[key] = obj[key]; } } } newObj.default = obj; if (cache) { cache.set(obj, newObj); } return newObj; }
@@ -406,24 +407,35 @@ const timeout = function (s) {
     }, s * 1000);
   });
 };
+
+// https://forkify-api.herokuapp.com/v2
+
+const renderSpinner = function (parentEl) {
+  const markup = `
+  <div class="spinner">
+  <svg>
+    <use href="${_icons.default}#icon-loader"></use>
+  </svg>
+</div>`;
+  parentEl.innerHTML = '';
+  parentEl.insertAdjacentHTML('afterbegin', markup);
+};
 ///////////////////////////////////////
-const controlRecipes = async function () {
+const showRecipe = async function () {
   try {
-    const id = window.location.hash.slice(1); //removing # from the id
+    const id = window.location.hash.slice(1); //getting hash and removing #
     if (!id) return;
     _recipeView.default.renderSpinner(); //loading animation until we fetch the data
-
-    //loading recipe
-    await model.loadRecipe(id); //returning async function so need to await => filling recipe object in model
-    //rendering recipe
+    //load recipe
+    await model.loadRecipe(id);
+    //rendering recipie
     _recipeView.default.render(model.state.recipe);
-  } catch (error) {
+  } catch (err) {
     alert(err.message);
   }
 };
-//hashchange
-['hashchange', 'load'].forEach(ev => window.addEventListener(ev, controlRecipes));
-},{"core-js/modules/web.immediate.js":"140df4f8e97a45c53c66fead1f5a9e92","./model.js":"aabf248f40f7693ef84a0cb99f385d1f","./views/recipeView.js":"bcae1aced0301b01ccacb3e6f7dfede8"}],"140df4f8e97a45c53c66fead1f5a9e92":[function(require,module,exports) {
+['hashchange', 'load'].forEach(ev => window.addEventListener(ev, showRecipe));
+},{"core-js/modules/web.immediate.js":"140df4f8e97a45c53c66fead1f5a9e92","url:../img/icons.svg":"ca6d19145bb6c7d87837cf88e575748e","./model.js":"aabf248f40f7693ef84a0cb99f385d1f","./views/recipeView.js":"bcae1aced0301b01ccacb3e6f7dfede8"}],"140df4f8e97a45c53c66fead1f5a9e92":[function(require,module,exports) {
 // TODO: Remove this module from `core-js@4` since it's split to modules listed below
 require('../modules/web.clear-immediate');
 require('../modules/web.set-immediate');
@@ -1880,7 +1892,120 @@ module.exports = function (scheduler, hasTimeArg) {
 /* global Bun -- Deno case */
 module.exports = typeof Bun == 'function' && Bun && typeof Bun.version == 'string';
 
-},{}],"aabf248f40f7693ef84a0cb99f385d1f":[function(require,module,exports) {
+},{}],"ca6d19145bb6c7d87837cf88e575748e":[function(require,module,exports) {
+module.exports = require('./bundle-url').getBundleURL() + require('./relative-path')("8208b8843d09611e", "78b709600bba37e6");
+},{"./bundle-url":"2146da1905b95151ed14d455c784e7b7","./relative-path":"1b9943ef25c7bbdf0dd1b9fa91880a6c"}],"2146da1905b95151ed14d455c784e7b7":[function(require,module,exports) {
+"use strict";
+
+/* globals document:readonly */
+var bundleURL = null;
+
+function getBundleURLCached() {
+  if (!bundleURL) {
+    bundleURL = getBundleURL();
+  }
+
+  return bundleURL;
+}
+
+function getBundleURL() {
+  try {
+    throw new Error();
+  } catch (err) {
+    var matches = ('' + err.stack).match(/(https?|file|ftp):\/\/[^)\n]+/g);
+
+    if (matches) {
+      return getBaseURL(matches[0]);
+    }
+  }
+
+  return '/';
+}
+
+function getBaseURL(url) {
+  return ('' + url).replace(/^((?:https?|file|ftp):\/\/.+)\/[^/]+$/, '$1') + '/';
+} // TODO: Replace uses with `new URL(url).origin` when ie11 is no longer supported.
+
+
+function getOrigin(url) {
+  let matches = ('' + url).match(/(https?|file|ftp):\/\/[^/]+/);
+
+  if (!matches) {
+    throw new Error('Origin not found');
+  }
+
+  return matches[0];
+}
+
+exports.getBundleURL = getBundleURLCached;
+exports.getBaseURL = getBaseURL;
+exports.getOrigin = getOrigin;
+},{}],"1b9943ef25c7bbdf0dd1b9fa91880a6c":[function(require,module,exports) {
+"use strict";
+
+var resolve = require('./bundle-manifest').resolve;
+
+module.exports = function (fromId, toId) {
+  return relative(dirname(resolve(fromId)), resolve(toId));
+};
+
+function dirname(_filePath) {
+  if (_filePath === '') {
+    return '.';
+  }
+
+  var filePath = _filePath[_filePath.length - 1] === '/' ? _filePath.slice(0, _filePath.length - 1) : _filePath;
+  var slashIndex = filePath.lastIndexOf('/');
+  return slashIndex === -1 ? '.' : filePath.slice(0, slashIndex);
+}
+
+function relative(from, to) {
+  if (from === to) {
+    return '';
+  }
+
+  var fromParts = from.split('/');
+
+  if (fromParts[0] === '.') {
+    fromParts.shift();
+  }
+
+  var toParts = to.split('/');
+
+  if (toParts[0] === '.') {
+    toParts.shift();
+  } // Find where path segments diverge.
+
+
+  var i;
+  var divergeIndex;
+
+  for (i = 0; (i < toParts.length || i < fromParts.length) && divergeIndex == null; i++) {
+    if (fromParts[i] !== toParts[i]) {
+      divergeIndex = i;
+    }
+  } // If there are segments from "from" beyond the point of divergence,
+  // return back up the path to that point using "..".
+
+
+  var parts = [];
+
+  for (i = 0; i < fromParts.length - divergeIndex; i++) {
+    parts.push('..');
+  } // If there are segments from "to" beyond the point of divergence,
+  // continue using the remaining segments.
+
+
+  if (toParts.length > divergeIndex) {
+    parts.push.apply(parts, toParts.slice(divergeIndex));
+  }
+
+  return parts.join('/');
+}
+
+module.exports._dirname = dirname;
+module.exports._relative = relative;
+},{"./bundle-manifest":"ba8df6b71e73837c465d69bebde6e64d"}],"aabf248f40f7693ef84a0cb99f385d1f":[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -1916,7 +2041,7 @@ const loadRecipe = async function (id) {
     };
     console.log(state.recipe);
   } catch (err) {
-    alert(err);
+    alert(err.message);
   }
 };
 exports.loadRecipe = loadRecipe;
@@ -2686,9 +2811,16 @@ try {
 },{}],"bcae1aced0301b01ccacb3e6f7dfede8":[function(require,module,exports) {
 "use strict";
 
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.default = void 0;
 var _icons = _interopRequireDefault(require("url:../../img/icons.svg"));
+var _fracty = _interopRequireDefault(require("fracty"));
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 //importing icons
+
+//importing fractional for 0.5 ->1/2 in ingredients
 
 class RecipeView {
   #parentElement = document.querySelector('.recipe');
@@ -2705,7 +2837,7 @@ class RecipeView {
     this.#parentElement.innerHTML = '';
   }
   //for render animation
-  renderSpinner = function () {
+  renderSpinner() {
     const markup = `
     <div class="spinner">
     <svg>
@@ -2714,7 +2846,7 @@ class RecipeView {
   </div>`;
     this.#clear();
     this.#parentElement.insertAdjacentHTML('afterbegin', markup);
-  };
+  }
   #generateMarkup() {
     return `
     <figure class="recipe__fig">
@@ -2769,18 +2901,7 @@ class RecipeView {
     <h2 class="heading--2">Recipe ingredients</h2>
     <ul class="recipe__ingredient-list">
       ${this.#data.ingredients //maping over ingredient array to form new string array and joining alll of that f
-    .map(ing => {
-      return ` <li class="recipe__ingredient">
-        <svg class="recipe__icon">
-          <use href="${_icons.default}#icon-check"></use>
-        </svg>
-        <div class="recipe__quantity">${ing.quantity}</div>
-        <div class="recipe__description">
-          <span class="recipe__unit">${ing.unit}</span>
-          ${ing.description}
-        </div>
-      </li>`;
-    }).join('')};
+    .map(this.#generateMarkupIngridients).join('')};
     </ul>
   </div>
 
@@ -2804,120 +2925,186 @@ class RecipeView {
   </div>
     `;
   }
-}
-},{"url:../../img/icons.svg":"ca6d19145bb6c7d87837cf88e575748e"}],"ca6d19145bb6c7d87837cf88e575748e":[function(require,module,exports) {
-module.exports = require('./bundle-url').getBundleURL() + require('./relative-path')("8208b8843d09611e", "78b709600bba37e6");
-},{"./bundle-url":"2146da1905b95151ed14d455c784e7b7","./relative-path":"1b9943ef25c7bbdf0dd1b9fa91880a6c"}],"2146da1905b95151ed14d455c784e7b7":[function(require,module,exports) {
-"use strict";
-
-/* globals document:readonly */
-var bundleURL = null;
-
-function getBundleURLCached() {
-  if (!bundleURL) {
-    bundleURL = getBundleURL();
+  #generateMarkupIngridients(ing) {
+    return ` <li class="recipe__ingredient">
+        <svg class="recipe__icon">
+          <use href="${_icons.default}#icon-check"></use>
+        </svg>
+        <div class="recipe__quantity">${ing.quantity ? (0, _fracty.default)(ing.quantity).toString() : ''}</div>
+        <div class="recipe__description">
+          <span class="recipe__unit">${ing.unit}</span>
+          ${ing.description}
+        </div>
+      </li>`;
   }
-
-  return bundleURL;
 }
+var _default = new RecipeView(); //exporting class
+exports.default = _default;
+},{"url:../../img/icons.svg":"ca6d19145bb6c7d87837cf88e575748e","fracty":"300cd7d834d4db2da74f6c56b657817b"}],"300cd7d834d4db2da74f6c56b657817b":[function(require,module,exports) {
+// FRACTY CONVERTS DECIMAL NUMBERS TO FRACTIONS BY ASSUMING THAT TRAILING PATTERNS FROM 10^-2 CONTINUE TO REPEAT
+// The assumption is based on the most standard numbering conventions
+// e.g. 3.51 will convert to 3 51/100 while 3.511 will convert to 3 23/45
+// Throw any number up to 16 digits long at fracty and let fracy do the work.
+// If number is beyond 16 digits fracty will truncate at 15 digits to compensate for roundoff errors created in IEEE 754 Floating Point conversion.
 
-function getBundleURL() {
-  try {
-    throw new Error();
-  } catch (err) {
-    var matches = ('' + err.stack).match(/(https?|file|ftp):\/\/[^)\n]+/g);
+module.exports = function (number) { //IEEE 754 Floating Point conversion problems will cause entires above 16 digits to convert incorrectly to binary with small roundoff errors, so keeping entry below 16 digits will help fracy make the most accurate calculation. If there are 16 or more digits in the number fracty can be called on the decimal part of the number only to maximize accuracy.
+    let type;
 
-    if (matches) {
-      return getBaseURL(matches[0]);
+    if (number < 0) { //If number is less than zero it's negative.
+        number = Math.abs(number);
+        type = '-';
+    } else {
+        type = '';
     }
-  }
 
-  return '/';
-}
-
-function getBaseURL(url) {
-  return ('' + url).replace(/^((?:https?|file|ftp):\/\/.+)\/[^/]+$/, '$1') + '/';
-} // TODO: Replace uses with `new URL(url).origin` when ie11 is no longer supported.
-
-
-function getOrigin(url) {
-  let matches = ('' + url).match(/(https?|file|ftp):\/\/[^/]+/);
-
-  if (!matches) {
-    throw new Error('Origin not found');
-  }
-
-  return matches[0];
-}
-
-exports.getBundleURL = getBundleURLCached;
-exports.getBaseURL = getBaseURL;
-exports.getOrigin = getOrigin;
-},{}],"1b9943ef25c7bbdf0dd1b9fa91880a6c":[function(require,module,exports) {
-"use strict";
-
-var resolve = require('./bundle-manifest').resolve;
-
-module.exports = function (fromId, toId) {
-  return relative(dirname(resolve(fromId)), resolve(toId));
-};
-
-function dirname(_filePath) {
-  if (_filePath === '') {
-    return '.';
-  }
-
-  var filePath = _filePath[_filePath.length - 1] === '/' ? _filePath.slice(0, _filePath.length - 1) : _filePath;
-  var slashIndex = filePath.lastIndexOf('/');
-  return slashIndex === -1 ? '.' : filePath.slice(0, slashIndex);
-}
-
-function relative(from, to) {
-  if (from === to) {
-    return '';
-  }
-
-  var fromParts = from.split('/');
-
-  if (fromParts[0] === '.') {
-    fromParts.shift();
-  }
-
-  var toParts = to.split('/');
-
-  if (toParts[0] === '.') {
-    toParts.shift();
-  } // Find where path segments diverge.
-
-
-  var i;
-  var divergeIndex;
-
-  for (i = 0; (i < toParts.length || i < fromParts.length) && divergeIndex == null; i++) {
-    if (fromParts[i] !== toParts[i]) {
-      divergeIndex = i;
+    if (number === undefined) {
+        return `Your input was undefined.`
     }
-  } // If there are segments from "from" beyond the point of divergence,
-  // return back up the path to that point using "..".
 
+    if (isNaN(number)) { //isNaN() instead of Number.isNaN() is used so that if fracty is called on something that is not a number but could be a string of numbers the function still passes as true.
+        return `"${number}" is not a number.`;
+    }
 
-  var parts = [];
+    if (number == 9999999999999999) { //There's no reason to call fracty on an integer at all, but in the unlikely case that the number is 9999999999999999 JavaScript will round to 10000000000000000 and fracty handles that. Interestingly, if fracty is called on -9999999999999999, which fracty converts to absolute value, the number logged is 10000000000000000 but the number stored is 9999999999999999, so this if statement works for both 9999999999999999 and -9999999999999999.
+        return `${type}9999999999999999`;
+    }
 
-  for (i = 0; i < fromParts.length - divergeIndex; i++) {
-    parts.push('..');
-  } // If there are segments from "to" beyond the point of divergence,
-  // continue using the remaining segments.
+    if (number > 9999999999999999) { //Beyond 9999999999999999 IEEE 754 Floating Point conversion inaccuracies will occur in JavaScript.
+        return `Too many digits in your integer to maintain IEEE 754 Floating Point conversion accuracy.`;
+    }
 
+    if (Number.isInteger(number)) { //If fracty is called on an integer, return the integer.
+        return `${type}${number}`;
+    }
 
-  if (toParts.length > divergeIndex) {
-    parts.push.apply(parts, toParts.slice(divergeIndex));
-  }
+    if (number < .000001) { //Non negative numbers with integers equal to zero that are followed by six or more consecutive zeros will coerce to scientific notation but, interestingly enough, numbers with integers that are not zero that are followed by six or more consecutive zeros will not coerce to scientific notation. Therefore, in the case of numbers with integers that are not zero that are followed by six or more consecutive zeros, fracty is more accurate than it is with numbers that have  integers equal to zero that are followed by six or more consecutive zeros because fracty doesn't have to coerce the decimal part of the number to '0' so soon. This it the smartest way fracty can compensate for this "bug" in JavaScript.
+        return '0';
+    }
 
-  return parts.join('/');
+    const numberString = number.toString();
+    const entry = numberString.split('.');
+    let integer = entry[0];
+    let decimal;
+
+    if (decimal == '0' && integer !== '0') { //If there's no decimal just return the integer.
+        return integer;
+    } else if (decimal == '0' && integer == '0') { //If only zero is entered return zero.
+        return '0';
+    } else if (numberString.length >= 17){ //If the number entered has equal to or more than 16 digits (decimal is excluded) truncate the last digit to prevent errors in IEEE 754 Floating Point conversion.
+        decimal = entry[1].slice(0,entry[1].length-1);
+    } else {
+        decimal = entry[1];
+    }
+
+    if (decimal == '99' && integer !== '0') { //Otherwise it will automatically round to 1/1.
+        return `${integer} 99/100`;
+    } else if (decimal == '99' && integer == '0') {
+        return `99/100`;
+    } else if (1 - parseFloat(`.${decimal}`) < .0011) { //If decimal is at least .99899999999 assume that the fraction will inevitably result in 1/1, so circumnavigate the issue that .999, upon IEEE 754 Floating Point conversion, accidentally becomes .9989999999999997 by replacing it with '999', which fracty will further reduce properly.
+        decimal = '999';
+    }
+
+    if (decimal == undefined) {
+        return integer;
+    }
+
+    const decimalRev = decimal.split('').reverse().join(''); //Reverse the string to look for patterns.
+    const patternSearch = /^(\d+)\1{1,2}/; //This greedy regex matches the biggest pattern that starts at the beginning of the string (at the end, in the case of the reversed string). A lazy regex doesn't work because it only identifies subpatterns in cases where subpatterns exist (e.g. '88' in '388388388388'), thus pattern capture must be greedy.
+    let pattern = decimalRev.match(patternSearch); //If there's a pattern, it's full sequence is in [0] of this array and the single unit is in [1] but it may still need to be reduced further.
+
+    if (pattern && decimal.length > 2) { //In keeping with the most standard numbering conventions of monetary divisibility, etc., if there's a pattern beyond two decimal places, reverse back the pattern that the greedy regex deemed a single unit, and the full pattern sequence, respectively.
+        let patternSequence = pattern[0].split('').reverse().join('');
+        let endPattern = pattern[1].split('').reverse().join('');
+
+        if (endPattern.length > 1) { //Test to see if the pattern unit is actually a single repeating digit.
+            let endPatternArray = endPattern.split('');
+            let testSingleUnit = 1;
+            for (let i = 0; i < endPatternArray.length; i++) {
+                testSingleUnit /= endPatternArray[0]/endPatternArray[i];
+            }
+
+            if (testSingleUnit === 1 ) {
+                endPattern = endPatternArray[0];
+            }
+          }
+
+        if (endPattern.length > 1 && endPattern.length % 2 === 0) { //If what the greedy regex deems to be the pattern unit has a length greater than 1 and an even number of digits, check to see if splitting it in half will give two equal parts. If it does, one of those equal parts will be the pattern. There's no need repeat this test as no case needing this test more than once would exist for strings of 16 digits or less.
+            endPattern = parseInt(endPattern.slice(0,endPattern.length/2),10) - parseInt(endPattern.slice(endPattern.length/2,endPattern.length),10) === 0 ? endPattern.slice(0,endPattern.length/2) : endPattern;
+        }
+            return yesRepeat(decimal, endPattern, patternSequence, integer, type); //Begin calculating the numerator and denominator for decimals that have a pattern.
+        } else {
+            return noRepeat(decimal, integer, type); //Begin calculating the numerator and denominator for decimals that don't have a pattern.
+    }
 }
 
-module.exports._dirname = dirname;
-module.exports._relative = relative;
-},{"./bundle-manifest":"ba8df6b71e73837c465d69bebde6e64d"}]},{},["933c4f76d07f5afcbc3a99eefa3052f7","27822c10e53f4825ec6964b0722da2c3","175e469a7ea7db1c8c0744d04372621f"], null)
+  //IF THERE'S A TRAILING PATTERN FRACTY DIVIDES THE INPUT BY ONE SUBTRACTED FROM THE NEAREST BASE 10 NUMBER WITH NUMBER OF ZEROS EQUAL TO THE LENGTH OF THE REPEATED PATTERN (I.E. A SERIES OF 9'S) MULTIPLIED BY THE BASE 10 NUMBER GREATER THAN AND CLOSEST TO THE INPUT.
+function yesRepeat(decimal, endPattern, patternSequence, integer, type) {
+
+    const rep = true; //The numerator repeats.
+    const nonPatternLength = decimal.length - patternSequence.length >= 1 ? decimal.length - patternSequence.length : 1; //Does the length of the non pattern segment of the input = 0? If it does, that's incorrect since we know it must equal at least 1, otherwise it's the length of the decimal input minus the length of the full pattern.
+    const decimalMultiplier2 = Math.pow(10,(nonPatternLength)); //Second multiplier to use.
+    const float = parseFloat(`0.${decimal}`); //Convert the decimal input to a floating point number.
+    const decimalMultiplier1 = Math.pow(10,(endPattern.length)); //Find the right multiplier to use for both numerator and denominator, which will later have 1 subtracted from it in the case of the denominator.
+    const numerator = Math.round(((float * decimalMultiplier1) - float) * Math.pow(10,(nonPatternLength))); //Find the numerator to be used in calculating the fraction that contains a repeating trailing sequence.
+    const denominator = (decimalMultiplier1-1) * decimalMultiplier2; //Caluculate the denominator using the equation for repeating trailing sequences.
+    return reduce(numerator, denominator, integer, type, rep); //Further reduce the numerator and denominator.
+}
+
+//IF THERE'S NO TRAILING PATTERN FRACTY DIVIDES THE INPUT BY THE NEAREST BASE 10 INTEGER GREATER THAN THE NUMERATOR.
+function noRepeat(decimal, integer, type) {
+    const rep = false; //The numerator doesn't repeat.
+    const numerator = parseInt(decimal, 10); //Numerator begins as decimal input converted into an integer.
+    const denominator = Math.pow(10,(decimal.length)); //Denominator begins as 10 to the power of the length of the numerator.
+    return reduce(numerator, denominator, integer, type, rep); //Reduce the numerator and denominator.
+}
+
+//FRACTY REDUCES THE FRACTION.
+function reduce(numerator, denominator, integer, type, rep) {
+
+    const primeNumberArray = [2, 3, 5]; //If the numerator isn't from a repeating decimal case, the initialized array of prime numbers will suffice to find the common denominators.
+
+    if (rep === true) {  //If the numerator is from a repeating decimal case, fracty generates an array of prime numbers from 2 to the square root of the numerator, loops over the array to find the common denominators, and reduces the fraction. Since reducing by prime numbers beyond i^2 isn't necessary, fracty creates and array of the prime numbers that, when squared, are still less than or equal to the numerator.
+        for (let i = 3; i * i <= numerator; i+=2) {
+            if (numerator % i === 0) {
+                primeNumberArray.push(i);
+            }
+        }
+    }
+
+    let j = 0; //Initialize counter over the prime number array for the while loop.
+    let comDenom = 1; //Initialize the common denominator.
+    let num = numerator; //Initialize the numerator.
+    let den = denominator; //Initialize the denominator.
+
+    while (j <= primeNumberArray.length) { //While i is less than the length of the array of prime numbers, check divisibility for both numerator and denominator and if there's a common denominator, divide it by that prime number and continue until they no longer reduce and you have to check the next prime number in the array.
+        if (num % primeNumberArray[j] === 0 && den % primeNumberArray[j] === 0) {
+            comDenom = comDenom * primeNumberArray[j];
+            num = num/primeNumberArray[j];
+            den = den/primeNumberArray[j];
+        } else {
+            j++;
+        }
+    }
+
+    return returnStrings(den, num, integer, type);
+}
+
+//FRACTY RETURNS THE REDUCED FRACTION AS A STRING.
+function returnStrings (den, num, integer, type) {
+
+    if (den === 1 && num === 1) { //If '1/1'
+        integer = `${type}${(parseInt(integer) + 1).toString()}`; //Add 1 to the integer and return a string without a fraction.
+        return `${integer}`;
+    } else if (num === 0) { //This happens when there are >=15 zeros in the decimal part of your number and the number has an integer part that is not zero and so doesn't coerce to scientific notation.
+        return `${type}${integer}`;
+    } else if (integer == '0') { //If the integer is '0' just return the fraction.
+        return `${type}${num}/${den}`;
+    } else {
+        return `${type}${integer} ${num}/${den}`; //If there's an integer and a fraction return both.
+    }
+
+}
+
+},{}]},{},["933c4f76d07f5afcbc3a99eefa3052f7","27822c10e53f4825ec6964b0722da2c3","175e469a7ea7db1c8c0744d04372621f"], null)
 
 //# sourceMappingURL=controller.0c4fa945.js.map
