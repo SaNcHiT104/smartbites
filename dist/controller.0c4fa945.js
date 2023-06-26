@@ -358,7 +358,40 @@ function hmrAcceptRun(bundle, id) {
   }
   acceptedAssets[id] = true;
 }
+},{}],"27822c10e53f4825ec6964b0722da2c3":[function(require,module,exports) {
+require('./bundle-manifest').register(JSON.parse("{\"8208b8843d09611e\":\"controller.0c4fa945.js\",\"78b709600bba37e6\":\"icons.98820a30.svg\"}"));
+},{"./bundle-manifest":"ba8df6b71e73837c465d69bebde6e64d"}],"ba8df6b71e73837c465d69bebde6e64d":[function(require,module,exports) {
+"use strict";
+
+var mapping = {};
+
+function register(pairs) {
+  var keys = Object.keys(pairs);
+
+  for (var i = 0; i < keys.length; i++) {
+    mapping[keys[i]] = pairs[keys[i]];
+  }
+}
+
+function resolve(id) {
+  var resolved = mapping[id];
+
+  if (resolved == null) {
+    throw new Error('Could not resolve bundle with id ' + id);
+  }
+
+  return resolved;
+}
+
+module.exports.register = register;
+module.exports.resolve = resolve;
 },{}],"175e469a7ea7db1c8c0744d04372621f":[function(require,module,exports) {
+"use strict";
+
+var _icons = _interopRequireDefault(require("url:../img/icons.svg"));
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+//importing icons
+
 const recipeContainer = document.querySelector('.recipe');
 const timeout = function (s) {
   return new Promise(function (_, reject) {
@@ -371,6 +404,235 @@ const timeout = function (s) {
 // https://forkify-api.herokuapp.com/v2
 
 ///////////////////////////////////////
-},{}]},{},["933c4f76d07f5afcbc3a99eefa3052f7","175e469a7ea7db1c8c0744d04372621f"], null)
+const showRecipe = async function () {
+  try {
+    const res = await fetch('https://forkify-api.herokuapp.com/api/v2/recipes/5ed6604591c37cdc054bc886');
+    const data = await res.json(); //coverting body to json
+    if (!res.ok) throw new Error(`${data.message} , ${res.success}`);
+    let {
+      recipe
+    } = data.data; //new object to  get rid of underscores
+    recipe = {
+      id: recipe.id,
+      title: recipe.title,
+      publisher: recipe.publisher,
+      sourceUrl: recipe.source_url,
+      image: recipe.image_url,
+      servings: recipe.servings,
+      cookingTime: recipe.cooking_time,
+      ingredients: recipe.ingredients
+    };
+    console.log(recipe);
+
+    //rendering recipe
+
+    const markup = `
+    <figure class="recipe__fig">
+    <img src="${recipe.image}" alt="${recipe.title}" class="recipe__img" />
+    <h1 class="recipe__title">
+      <span>${recipe.title}</span>
+    </h1>
+  </figure>
+
+  <div class="recipe__details">
+    <div class="recipe__info">
+      <svg class="recipe__info-icon">
+        <use href="${_icons.default}#icon-clock"></use>
+      </svg>
+      <span class="recipe__info-data recipe__info-data--minutes">${recipe.cookingTime}</span>
+      <span class="recipe__info-text">minutes</span>
+    </div>
+    <div class="recipe__info">
+      <svg class="recipe__info-icon">
+        <use href="${_icons.default}#icon-users"></use>
+      </svg>
+      <span class="recipe__info-data recipe__info-data--people">${recipe.servings}</span>
+      <span class="recipe__info-text">servings</span>
+
+      <div class="recipe__info-buttons">
+        <button class="btn--tiny btn--increase-servings">
+          <svg>
+            <use href="${_icons.default}#icon-minus-circle"></use>
+          </svg>
+        </button>
+        <button class="btn--tiny btn--increase-servings">
+          <svg>
+            <use href="${_icons.default}#icon-plus-circle"></use>
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <div class="recipe__user-generated">
+      <svg>
+        <use href="${_icons.default}#icon-user"></use>
+      </svg>
+    </div>
+    <button class="btn--round">
+      <svg class="">
+        <use href="${_icons.default}#icon-bookmark-fill"></use>
+      </svg>
+    </button>
+  </div>
+
+  <div class="recipe__ingredients">
+    <h2 class="heading--2">Recipe ingredients</h2>
+    <ul class="recipe__ingredient-list">
+      ${recipe.ingredients //maping over ingredient array to form new string array and joining alll of that f
+    .map(ing => {
+      return ` <li class="recipe__ingredient">
+        <svg class="recipe__icon">
+          <use href="${_icons.default}#icon-check"></use>
+        </svg>
+        <div class="recipe__quantity">${ing.quantity}</div>
+        <div class="recipe__description">
+          <span class="recipe__unit">${ing.unit}</span>
+          ${ing.description}
+        </div>
+      </li>`;
+    }).join('')};
+    </ul>
+  </div>
+
+  <div class="recipe__directions">
+    <h2 class="heading--2">How to cook it</h2>
+    <p class="recipe__directions-text">
+      This recipe was carefully designed and tested by
+      <span class="recipe__publisher">${recipe.publisher}</span>. Please check out
+      directions at their website.
+    </p>
+    <
+      class="btn--small recipe__btn"
+      href="${recipe.sourceUrl}"
+      target="_blank"
+    >
+      <span>Directions</span>
+      <svg class="search__icon">
+        <use href="${_icons.default}#icon-arrow-right"></use>
+      </svg>
+    </a>
+  </div>
+    `;
+    recipeContainer.innerHTML = '';
+    recipeContainer.insertAdjacentHTML('afterbegin', markup);
+  } catch (error) {
+    alert(err.message);
+  }
+};
+showRecipe();
+},{"url:../img/icons.svg":"ca6d19145bb6c7d87837cf88e575748e"}],"ca6d19145bb6c7d87837cf88e575748e":[function(require,module,exports) {
+module.exports = require('./bundle-url').getBundleURL() + require('./relative-path')("8208b8843d09611e", "78b709600bba37e6");
+},{"./bundle-url":"2146da1905b95151ed14d455c784e7b7","./relative-path":"1b9943ef25c7bbdf0dd1b9fa91880a6c"}],"2146da1905b95151ed14d455c784e7b7":[function(require,module,exports) {
+"use strict";
+
+/* globals document:readonly */
+var bundleURL = null;
+
+function getBundleURLCached() {
+  if (!bundleURL) {
+    bundleURL = getBundleURL();
+  }
+
+  return bundleURL;
+}
+
+function getBundleURL() {
+  try {
+    throw new Error();
+  } catch (err) {
+    var matches = ('' + err.stack).match(/(https?|file|ftp):\/\/[^)\n]+/g);
+
+    if (matches) {
+      return getBaseURL(matches[0]);
+    }
+  }
+
+  return '/';
+}
+
+function getBaseURL(url) {
+  return ('' + url).replace(/^((?:https?|file|ftp):\/\/.+)\/[^/]+$/, '$1') + '/';
+} // TODO: Replace uses with `new URL(url).origin` when ie11 is no longer supported.
+
+
+function getOrigin(url) {
+  let matches = ('' + url).match(/(https?|file|ftp):\/\/[^/]+/);
+
+  if (!matches) {
+    throw new Error('Origin not found');
+  }
+
+  return matches[0];
+}
+
+exports.getBundleURL = getBundleURLCached;
+exports.getBaseURL = getBaseURL;
+exports.getOrigin = getOrigin;
+},{}],"1b9943ef25c7bbdf0dd1b9fa91880a6c":[function(require,module,exports) {
+"use strict";
+
+var resolve = require('./bundle-manifest').resolve;
+
+module.exports = function (fromId, toId) {
+  return relative(dirname(resolve(fromId)), resolve(toId));
+};
+
+function dirname(_filePath) {
+  if (_filePath === '') {
+    return '.';
+  }
+
+  var filePath = _filePath[_filePath.length - 1] === '/' ? _filePath.slice(0, _filePath.length - 1) : _filePath;
+  var slashIndex = filePath.lastIndexOf('/');
+  return slashIndex === -1 ? '.' : filePath.slice(0, slashIndex);
+}
+
+function relative(from, to) {
+  if (from === to) {
+    return '';
+  }
+
+  var fromParts = from.split('/');
+
+  if (fromParts[0] === '.') {
+    fromParts.shift();
+  }
+
+  var toParts = to.split('/');
+
+  if (toParts[0] === '.') {
+    toParts.shift();
+  } // Find where path segments diverge.
+
+
+  var i;
+  var divergeIndex;
+
+  for (i = 0; (i < toParts.length || i < fromParts.length) && divergeIndex == null; i++) {
+    if (fromParts[i] !== toParts[i]) {
+      divergeIndex = i;
+    }
+  } // If there are segments from "from" beyond the point of divergence,
+  // return back up the path to that point using "..".
+
+
+  var parts = [];
+
+  for (i = 0; i < fromParts.length - divergeIndex; i++) {
+    parts.push('..');
+  } // If there are segments from "to" beyond the point of divergence,
+  // continue using the remaining segments.
+
+
+  if (toParts.length > divergeIndex) {
+    parts.push.apply(parts, toParts.slice(divergeIndex));
+  }
+
+  return parts.join('/');
+}
+
+module.exports._dirname = dirname;
+module.exports._relative = relative;
+},{"./bundle-manifest":"ba8df6b71e73837c465d69bebde6e64d"}]},{},["933c4f76d07f5afcbc3a99eefa3052f7","27822c10e53f4825ec6964b0722da2c3","175e469a7ea7db1c8c0744d04372621f"], null)
 
 //# sourceMappingURL=controller.0c4fa945.js.map
