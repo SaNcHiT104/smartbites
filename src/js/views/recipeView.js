@@ -7,7 +7,8 @@ import fracty from 'fracty';
 class RecipeView {
   #parentElement = document.querySelector('.recipe');
   #data; //prive eleme
-
+  #errorMessage = 'We could not find your recipe ! please find another one';
+  #message = ''; //welcome message
   render(data) {
     this.#data = data; //model is setting data in recipe object and that object is shared in this so basically recipe object is in data
     const markup = this.#generateMarkup();
@@ -17,6 +18,36 @@ class RecipeView {
   #clear() {
     //clears the field
     this.#parentElement.innerHTML = '';
+  }
+  //for render error
+  renderError(message = this.#errorMessage) {
+    const markup = `
+    <div class="error">
+     <div>
+       <svg>
+          <use href="${icons}#icon-alert-triangle"></use>
+      </svg>
+      </div>
+      <p>${message}</p>
+    </div>
+    `;
+    this.#clear();
+    this.#parentElement.insertAdjacentHTML('afterbegin', markup);
+  }
+  //render welcome message
+  renderMessage(message = this.#message) {
+    const markup = `
+    <div class="message">
+     <div>
+       <svg>
+          <use href="${icons}#icon-smile"></use>
+      </svg>
+      </div>
+      <p>${message}</p>
+    </div>
+    `;
+    this.#clear();
+    this.#parentElement.insertAdjacentHTML('afterbegin', markup);
   }
   //for render animation
   renderSpinner() {

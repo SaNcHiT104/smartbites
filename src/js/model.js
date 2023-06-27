@@ -22,6 +22,7 @@ export const loadRecipe = async function (id) {
       ingredients: recipe.ingredients,
     };
   } catch (err) {
-    console.error(err);
+    console.log(err);
+    throw err; //getting error from helper and throwing it to controller
   }
 };

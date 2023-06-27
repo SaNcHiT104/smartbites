@@ -424,9 +424,10 @@ const controlRecipes = async function () {
     //rendering recipie
     _recipeView.default.render(model.state.recipe);
   } catch (err) {
-    alert(err.message);
+    _recipeView.default.renderError(); //getting error from model and throwing it to recipeView
   }
 };
+
 const init = function () {
   //publisher subscriber pattern
   _recipeView.default.addHandlerRender(controlRecipes);
@@ -2037,7 +2038,8 @@ const loadRecipe = async function (id) {
       ingredients: recipe.ingredients
     };
   } catch (err) {
-    console.error(err);
+    console.log(err);
+    throw err; //getting error from helper and throwing it to controller
   }
 };
 exports.loadRecipe = loadRecipe;
@@ -2864,7 +2866,8 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 class RecipeView {
   #parentElement = document.querySelector('.recipe');
   #data; //prive eleme
-
+  #errorMessage = 'We could not find your recipe ! please find another one';
+  #message = ''; //welcome message
   render(data) {
     this.#data = data; //model is setting data in recipe object and that object is shared in this so basically recipe object is in data
     const markup = this.#generateMarkup();
@@ -2874,6 +2877,38 @@ class RecipeView {
   #clear() {
     //clears the field
     this.#parentElement.innerHTML = '';
+  }
+  //for render error
+  renderError() {
+    let message = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : this.#errorMessage;
+    const markup = `
+    <div class="error">
+     <div>
+       <svg>
+          <use href="${_icons.default}#icon-alert-triangle"></use>
+      </svg>
+      </div>
+      <p>${message}</p>
+    </div>
+    `;
+    this.#clear();
+    this.#parentElement.insertAdjacentHTML('afterbegin', markup);
+  }
+  //render welcome message
+  renderMessage() {
+    let message = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : this.#message;
+    const markup = `
+    <div class="message">
+     <div>
+       <svg>
+          <use href="${_icons.default}#icon-smile"></use>
+      </svg>
+      </div>
+      <p>${message}</p>
+    </div>
+    `;
+    this.#clear();
+    this.#parentElement.insertAdjacentHTML('afterbegin', markup);
   }
   //for render animation
   renderSpinner() {
