@@ -414,7 +414,7 @@ const renderSpinner = function (parentEl) {
   parentEl.insertAdjacentHTML('afterbegin', markup);
 };
 ///////////////////////////////////////
-const showRecipe = async function () {
+const controlRecipes = async function () {
   try {
     const id = window.location.hash.slice(1); //getting hash and removing #
     if (!id) return;
@@ -427,7 +427,11 @@ const showRecipe = async function () {
     alert(err.message);
   }
 };
-['hashchange', 'load'].forEach(ev => window.addEventListener(ev, showRecipe));
+const init = function () {
+  //publisher subscriber pattern
+  _recipeView.default.addHandlerRender(controlRecipes);
+};
+init();
 },{"core-js/modules/web.immediate.js":"140df4f8e97a45c53c66fead1f5a9e92","url:../img/icons.svg":"ca6d19145bb6c7d87837cf88e575748e","./model.js":"aabf248f40f7693ef84a0cb99f385d1f","./views/recipeView.js":"bcae1aced0301b01ccacb3e6f7dfede8"}],"140df4f8e97a45c53c66fead1f5a9e92":[function(require,module,exports) {
 // TODO: Remove this module from `core-js@4` since it's split to modules listed below
 require('../modules/web.clear-immediate');
@@ -2881,6 +2885,10 @@ class RecipeView {
   </div>`;
     this.#clear();
     this.#parentElement.insertAdjacentHTML('afterbegin', markup);
+  }
+  addHandlerRender(handler) {
+    //publisher subscriber pattern
+    ['hashchange', 'load'].forEach(ev => window.addEventListener(ev, handler));
   }
   #generateMarkup() {
     return `

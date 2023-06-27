@@ -19,7 +19,7 @@ const renderSpinner = function (parentEl) {
   parentEl.insertAdjacentHTML('afterbegin', markup);
 };
 ///////////////////////////////////////
-const showRecipe = async function () {
+const controlRecipes = async function () {
   try {
     const id = window.location.hash.slice(1); //getting hash and removing #
     if (!id) return;
@@ -32,5 +32,8 @@ const showRecipe = async function () {
     alert(err.message);
   }
 };
-
-['hashchange', 'load'].forEach(ev => window.addEventListener(ev, showRecipe));
+const init = function () {
+  //publisher subscriber pattern
+  recipeView.addHandlerRender(controlRecipes);
+};
+init();
