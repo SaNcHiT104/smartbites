@@ -392,6 +392,7 @@ require("core-js/modules/web.immediate.js");
 var model = _interopRequireWildcard(require("./model.js"));
 var _recipeView = _interopRequireDefault(require("./views/recipeView.js"));
 var _searchView = _interopRequireDefault(require("./views/searchView.js"));
+var _resultsView = _interopRequireDefault(require("./views/resultsView.js"));
 var _regeneratorRuntime = require("regenerator-runtime");
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 function _getRequireWildcardCache(nodeInterop) { if (typeof WeakMap !== "function") return null; var cacheBabelInterop = new WeakMap(); var cacheNodeInterop = new WeakMap(); return (_getRequireWildcardCache = function (nodeInterop) { return nodeInterop ? cacheNodeInterop : cacheBabelInterop; })(nodeInterop); }
@@ -402,7 +403,13 @@ function _interopRequireWildcard(obj, nodeInterop) { if (!nodeInterop && obj && 
 
 // https://forkify-api.herokuapp.com/v2
 ///////////////////////////////////////
+if (module.hot) {
+  //faster the reload
+  module.hot.accept();
+}
+
 //showing single recipe in recipe container the user has picked
+
 const controlRecipes = async function () {
   try {
     const id = window.location.hash.slice(1); //getting hash and removing #
@@ -419,12 +426,16 @@ const controlRecipes = async function () {
 //getting all the objects from the search button for eg pizza so all the objects of pizza with different name
 const controlSearchResults = async function () {
   try {
+    //rendering spinner
+    _resultsView.default.renderSpinner();
+    console.log(_resultsView.default);
     const query = _searchView.default.getQuery(); //getting text from seach button
     if (!query) return;
     //waiting for model to get response from api
     await model.loadSearchResults(query);
     //rendering results
-    console.log(model.state.search.results);
+    // console.log(model.state.search.results);
+    _resultsView.default.render(model.state.search.results);
   } catch (err) {
     console.log(err);
   }
@@ -435,7 +446,7 @@ const init = function () {
   _searchView.default.addHandlerSearch(controlSearchResults);
 };
 init();
-},{"core-js/modules/web.immediate.js":"140df4f8e97a45c53c66fead1f5a9e92","./model.js":"aabf248f40f7693ef84a0cb99f385d1f","./views/recipeView.js":"bcae1aced0301b01ccacb3e6f7dfede8","regenerator-runtime":"e155e0d3930b156f86c48e8d05522b16","./views/searchView.js":"c5d792f7cac03ef65de30cc0fbb2cae7"}],"140df4f8e97a45c53c66fead1f5a9e92":[function(require,module,exports) {
+},{"core-js/modules/web.immediate.js":"140df4f8e97a45c53c66fead1f5a9e92","./model.js":"aabf248f40f7693ef84a0cb99f385d1f","./views/recipeView.js":"bcae1aced0301b01ccacb3e6f7dfede8","./views/searchView.js":"c5d792f7cac03ef65de30cc0fbb2cae7","regenerator-runtime":"e155e0d3930b156f86c48e8d05522b16","./views/resultsView.js":"eacdbc0d50ee3d2819f3ee59366c2773"}],"140df4f8e97a45c53c66fead1f5a9e92":[function(require,module,exports) {
 // TODO: Remove this module from `core-js@4` since it's split to modules listed below
 require('../modules/web.clear-immediate');
 require('../modules/web.set-immediate');
@@ -1953,7 +1964,7 @@ const loadSearchResults = async function (query) {
       };
     });
   } catch {
-    console.log(err);
+    // console.log(err);
     throw err; //getting error from helper and throwing it to controller
   }
 };
@@ -2773,79 +2784,28 @@ Object.defineProperty(exports, "__esModule", {
 exports.default = void 0;
 var _icons = _interopRequireDefault(require("url:../../img/icons.svg"));
 var _fracty = _interopRequireDefault(require("fracty"));
+var _View = _interopRequireDefault(require("./View.js"));
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 //importing icons
 
 //importing fractional for 0.5 ->1/2 in ingredients
 
-class RecipeView {
-  #parentElement = document.querySelector('.recipe');
-  #data; //prive eleme
-  #errorMessage = 'We could not find your recipe ! please find another one';
-  #message = ''; //welcome message
-  render(data) {
-    this.#data = data; //model is setting data in recipe object and that object is shared in this so basically recipe object is in data
-    const markup = this.#generateMarkup();
-    this.#clear();
-    this.#parentElement.insertAdjacentHTML('afterbegin', markup);
-  }
-  #clear() {
-    //clears the field
-    this.#parentElement.innerHTML = '';
-  }
-  //for render error
-  renderError() {
-    let message = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : this.#errorMessage;
-    const markup = `
-    <div class="error">
-     <div>
-       <svg>
-          <use href="${_icons.default}#icon-alert-triangle"></use>
-      </svg>
-      </div>
-      <p>${message}</p>
-    </div>
-    `;
-    this.#clear();
-    this.#parentElement.insertAdjacentHTML('afterbegin', markup);
-  }
-  //render welcome message
-  renderMessage() {
-    let message = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : this.#message;
-    const markup = `
-    <div class="message">
-     <div>
-       <svg>
-          <use href="${_icons.default}#icon-smile"></use>
-      </svg>
-      </div>
-      <p>${message}</p>
-    </div>
-    `;
-    this.#clear();
-    this.#parentElement.insertAdjacentHTML('afterbegin', markup);
-  }
-  //for render animation
-  renderSpinner() {
-    const markup = `
-    <div class="spinner">
-    <svg>
-      <use href="${_icons.default}#icon-loader"></use>
-    </svg>
-  </div>`;
-    this.#clear();
-    this.#parentElement.insertAdjacentHTML('afterbegin', markup);
-  }
+class RecipeView extends _View.default {
+  parentElement = document.querySelector('.recipe');
+  data; //prive eleme
+  errorMessage = 'We could not find your recipe ! please find another one';
+  message = ''; //welcome message
+
   addHandlerRender(handler) {
     //publisher subscriber pattern
     ['hashchange', 'load'].forEach(ev => window.addEventListener(ev, handler));
   }
-  #generateMarkup() {
+  generateMarkup() {
     return `
     <figure class="recipe__fig">
-    <img src="${this.#data.image}" alt="${this.#data.title}" class="recipe__img" />
+    <img src="${this.data.image}" alt="${this.data.title}" class="recipe__img" />
     <h1 class="recipe__title">
-      <span>${this.#data.title}</span>
+      <span>${this.data.title}</span>
     </h1>
   </figure>
 
@@ -2854,14 +2814,14 @@ class RecipeView {
       <svg class="recipe__info-icon">
         <use href="${_icons.default}#icon-clock"></use>
       </svg>
-      <span class="recipe__info-data recipe__info-data--minutes">${this.#data.cookingTime}</span>
+      <span class="recipe__info-data recipe__info-data--minutes">${this.data.cookingTime}</span>
       <span class="recipe__info-text">minutes</span>
     </div>
     <div class="recipe__info">
       <svg class="recipe__info-icon">
         <use href="${_icons.default}#icon-users"></use>
       </svg>
-      <span class="recipe__info-data recipe__info-data--people">${this.#data.servings}</span>
+      <span class="recipe__info-data recipe__info-data--people">${this.data.servings}</span>
       <span class="recipe__info-text">servings</span>
 
       <div class="recipe__info-buttons">
@@ -2879,9 +2839,7 @@ class RecipeView {
     </div>
 
     <div class="recipe__user-generated">
-      <svg>
-        <use href="${_icons.default}#icon-user"></use>
-      </svg>
+
     </div>
     <button class="btn--round">
       <svg class="">
@@ -2893,8 +2851,8 @@ class RecipeView {
   <div class="recipe__ingredients">
     <h2 class="heading--2">Recipe ingredients</h2>
     <ul class="recipe__ingredient-list">
-      ${this.#data.ingredients //maping over ingredient array to form new string array and joining alll of that f
-    .map(this.#generateMarkupIngridients).join('')};
+      ${this.data.ingredients //maping over ingredient array to form new string array and joining alll of that f
+    .map(this.generateMarkupIngridients).join('')};
     </ul>
   </div>
 
@@ -2902,12 +2860,12 @@ class RecipeView {
     <h2 class="heading--2">How to cook it</h2>
     <p class="recipe__directions-text">
       This recipe was carefully designed and tested by
-      <span class="recipe__publisher">${this.#data.publisher}</span>. Please check out
+      <span class="recipe__publisher">${this.data.publisher}</span>. Please check out
       directions at their website.
     </p>
     <a
       class="btn--small recipe__btn"
-      href="${this.#data.sourceUrl}"
+      href="${this.data.sourceUrl}"
       target="_blank"
     >
       <span>Directions</span>
@@ -2918,7 +2876,7 @@ class RecipeView {
   </div>
     `;
   }
-  #generateMarkupIngridients(ing) {
+  generateMarkupIngridients(ing) {
     return ` <li class="recipe__ingredient">
         <svg class="recipe__icon">
           <use href="${_icons.default}#icon-check"></use>
@@ -2933,7 +2891,7 @@ class RecipeView {
 }
 var _default = new RecipeView(); //exporting class
 exports.default = _default;
-},{"url:../../img/icons.svg":"ca6d19145bb6c7d87837cf88e575748e","fracty":"300cd7d834d4db2da74f6c56b657817b"}],"ca6d19145bb6c7d87837cf88e575748e":[function(require,module,exports) {
+},{"url:../../img/icons.svg":"ca6d19145bb6c7d87837cf88e575748e","fracty":"300cd7d834d4db2da74f6c56b657817b","./View.js":"61b7a1b097e16436be3d54c2f1828c73"}],"ca6d19145bb6c7d87837cf88e575748e":[function(require,module,exports) {
 module.exports = require('./bundle-url').getBundleURL() + require('./relative-path')("8208b8843d09611e", "78b709600bba37e6");
 },{"./bundle-url":"2146da1905b95151ed14d455c784e7b7","./relative-path":"1b9943ef25c7bbdf0dd1b9fa91880a6c"}],"2146da1905b95151ed14d455c784e7b7":[function(require,module,exports) {
 "use strict";
@@ -3211,7 +3169,79 @@ function returnStrings (den, num, integer, type) {
 
 }
 
-},{}],"c5d792f7cac03ef65de30cc0fbb2cae7":[function(require,module,exports) {
+},{}],"61b7a1b097e16436be3d54c2f1828c73":[function(require,module,exports) {
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.default = void 0;
+var _icons = _interopRequireDefault(require("url:../../img/icons.svg"));
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+//importing icons
+
+//common in all view
+class View {
+  data;
+  render(data) {
+    // if we find data then check the length of arr also
+    if (!data || Array.isArray(data) && data.length === 0) return this.renderError();
+    this.data = data; //model is setting data in recipe object and that object is shared in this so basically recipe object is in data
+    const markup = this.generateMarkup();
+    this.clear();
+    this.parentElement.insertAdjacentHTML('afterbegin', markup);
+  }
+  clear() {
+    //clears the field
+    this.parentElement.innerHTML = '';
+  }
+  //for render error
+  renderError() {
+    let x = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : this.errorMessage;
+    console.log(this.errorMessage);
+    const markup = `
+        <div class="error">
+         <div>
+           <svg>
+              <use href="${_icons.default}#icon-alert-triangle"></use>
+          </svg>
+          </div>
+          <p>${x}</p>
+        </div>
+        `;
+    this.clear();
+    this.parentElement.insertAdjacentHTML('afterbegin', markup);
+  }
+  //render welcome message
+  renderMessage() {
+    let message = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : this.message;
+    const markup = `
+        <div class="message">
+         <div>
+           <svg>
+              <use href="${_icons.default}#icon-smile"></use>
+          </svg>
+          </div>
+          <p>${message}</p>
+        </div>
+        `;
+    this.clear();
+    this.parentElement.insertAdjacentHTML('afterbegin', markup);
+  }
+  //for render animation
+  renderSpinner() {
+    const markup = `
+        <div class="spinner">
+        <svg>
+          <use href="${_icons.default}#icon-loader"></use>
+        </svg>
+      </div>`;
+    this.clear();
+    this.parentElement.insertAdjacentHTML('afterbegin', markup);
+  }
+}
+exports.default = View;
+},{"url:../../img/icons.svg":"ca6d19145bb6c7d87837cf88e575748e"}],"c5d792f7cac03ef65de30cc0fbb2cae7":[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -3238,6 +3268,47 @@ class SearchView {
 }
 var _default = new SearchView();
 exports.default = _default;
-},{}]},{},["933c4f76d07f5afcbc3a99eefa3052f7","27822c10e53f4825ec6964b0722da2c3","175e469a7ea7db1c8c0744d04372621f"], null)
+},{}],"eacdbc0d50ee3d2819f3ee59366c2773":[function(require,module,exports) {
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.default = void 0;
+var _icons = _interopRequireDefault(require("url:../../img/icons.svg"));
+var _View = _interopRequireDefault(require("./View.js"));
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+//file to show full menu of pizza
+//view have all function that are called again and again
+//ensure all elements have same name
+//importing icons
+
+class Resultsview extends _View.default {
+  parentElement = document.querySelector('.results');
+  errorMessage = 'No data found ! Try another data';
+  message = '';
+  generateMarkup() {
+    return this.data.map(this.generateMarkupPreview).join('');
+  }
+  generateMarkupPreview(result) {
+    //using result object which is with title,id,image and publisher
+    return `
+    <li class="preview">
+        <a class="preview__link " href="#${result.id}">
+        <figure class="preview__fig">
+            <img src="${result.image}" alt="${result.title}" />
+        </figure>
+        <div class="preview__data">
+            <h4 class="preview__title">${result.title}</h4>
+            <p class="preview__publisher">${result.publisher}</p>
+        </div>
+        </a>
+    </li>
+    `;
+  }
+}
+var _default = new Resultsview();
+exports.default = _default;
+},{"url:../../img/icons.svg":"ca6d19145bb6c7d87837cf88e575748e","./View.js":"61b7a1b097e16436be3d54c2f1828c73"}]},{},["933c4f76d07f5afcbc3a99eefa3052f7","27822c10e53f4825ec6964b0722da2c3","175e469a7ea7db1c8c0744d04372621f"], null)
 
 //# sourceMappingURL=controller.0c4fa945.js.map

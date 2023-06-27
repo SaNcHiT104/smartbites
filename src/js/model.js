@@ -46,7 +46,7 @@ export const loadSearchResults = async function (query) {
       };
     });
   } catch {
-    console.log(err);
+    // console.log(err);
     throw err; //getting error from helper and throwing it to controller
   }
 };
