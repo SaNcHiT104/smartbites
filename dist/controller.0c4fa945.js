@@ -415,6 +415,7 @@ const controlRecipes = async function () {
     if (!id) return;
     _recipeView.default.renderSpinner(); //loading animation until we fetch the data
     //load recipe
+    _resultsView.default.update(model.getSearchResultsPage()); //highlight the menu page again if we use render
     await model.loadRecipe(id);
     //rendering recipie
     _recipeView.default.render(model.state.recipe);
@@ -452,12 +453,26 @@ const controlServings = function (update) {
   //update the recipe sevings (in state)
   model.updateServings(update);
   // update the recupe views
-  _recipeView.default.render(model.state.recipe);
+  // recipeView.render(model.state.recipe); causing flickering of images agian and again
+  _recipeView.default.update(model.state.recipe);
+};
+
+//to add bookmark
+
+const addBookMark = function () {
+  if (!model.state.recipe.bookmarked) {
+    model.addBookMarks(model.state.recipe);
+  } else {
+    model.removeBookMark(model.state.recipe.id);
+  }
+  // console.log(model.state.recipe);
+  _recipeView.default.update(model.state.recipe);
 };
 const init = function () {
   //publisher subscriber pattern
   _recipeView.default.addHandlerRender(controlRecipes);
   _recipeView.default.addHandlerUpdateServings(controlServings);
+  _recipeView.default.addHandlerAddBookMark(addBookMark);
   _searchView.default.addHandlerSearch(controlSearchResults);
   _paginationView.default.addHandlerClick(controlPagination);
 };
@@ -1925,7 +1940,7 @@ module.exports = typeof Bun == 'function' && Bun && typeof Bun.version == 'strin
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.updateServings = exports.state = exports.loadSearchResults = exports.loadRecipe = exports.getSearchResultsPage = void 0;
+exports.updateServings = exports.state = exports.removeBookMark = exports.loadSearchResults = exports.loadRecipe = exports.getSearchResultsPage = exports.addBookMarks = void 0;
 var _regeneratorRuntime = require("regenerator-runtime");
 var _config = require("./config");
 var _helper = require("./helper");
@@ -1941,7 +1956,8 @@ const state = {
     resultsPerPage: _config.RES_PER_PAGE,
     //getting from config
     page: 1
-  }
+  },
+  bookmarks: []
 };
 //fetching data from api
 //load recipe changes the state recipe
@@ -1963,6 +1979,10 @@ const loadRecipe = async function (id) {
       cookingTime: recipe.cooking_time,
       ingredients: recipe.ingredients
     };
+    if (state.bookmarks.some(bookmark => bookmark.id == id)) {
+      //iterating over bookamrks array and checking the id
+      state.recipe.bookmarked = true;
+    }
   } catch (err) {
     // console.log(err);
     throw err; //getting error from helper and throwing it to controller
@@ -1983,6 +2003,7 @@ const loadSearchResults = async function (query) {
         image: rec.image_url
       };
     });
+    state.search.page = 1; //setting 1 after finding new recipe
   } catch {
     // console.log(err);
     throw err; //getting error from helper and throwing it to controller
@@ -2006,7 +2027,24 @@ const updateServings = function (newServings) {
 
   state.recipe.servings = newServings;
 };
+
+//adding bookmarks
 exports.updateServings = updateServings;
+const addBookMarks = function (recipe) {
+  //add in bookmarks arr;
+  state.bookmarks.push(recipe);
+
+  //mark current recipe as bookmarked
+  if (state.recipe.id == recipe.id) state.recipe.bookmarked = true;
+};
+exports.addBookMarks = addBookMarks;
+const removeBookMark = function (id) {
+  const index = state.bookmarks.findIndex(ele => ele.id === id);
+  state.bookmarks.splice(index, 1);
+  //mark current recipe as removeBookmarked
+  if (state.recipe.id == id) state.recipe.bookmarked = false;
+};
+exports.removeBookMark = removeBookMark;
 },{"regenerator-runtime":"e155e0d3930b156f86c48e8d05522b16","./config":"09212d541c5c40ff2bd93475a904f8de","./helper":"ca5e72bede557533b2de19db21a2a688"}],"e155e0d3930b156f86c48e8d05522b16":[function(require,module,exports) {
 /**
  * Copyright (c) 2014-present, Facebook, Inc.
@@ -2840,6 +2878,14 @@ class RecipeView extends _View.default {
     //publisher subscriber pattern
     ['hashchange', 'load'].forEach(ev => window.addEventListener(ev, handler));
   }
+  addHandlerAddBookMark(handler) {
+    this.parentElement.addEventListener('click', function (e) {
+      e.preventDefault();
+      const btn = e.target.closest('.btn--bookmark'); //if someone click on svg
+      if (!btn) return;
+      handler();
+    });
+  }
   addHandlerUpdateServings(handler) {
     this.parentElement.addEventListener('click', function (e) {
       e.preventDefault();
@@ -2854,6 +2900,7 @@ class RecipeView extends _View.default {
     });
   }
   generateMarkup() {
+    // console.log(this.data.sourceUrl);
     return `
     <figure class="recipe__fig">
     <img src="${this.data.image}" alt="${this.data.title}" class="recipe__img" />
@@ -2894,9 +2941,9 @@ class RecipeView extends _View.default {
     <div class="recipe__user-generated">
 
     </div>
-    <button class="btn--round">
+    <button class="btn--round btn--bookmark">
       <svg class="">
-        <use href="${_icons.default}#icon-bookmark-fill"></use>
+        <use href="${_icons.default}#icon-bookmark${this.data.bookmarked ? '-fill' : ''}"></use>
       </svg>
     </button>
   </div>
@@ -3244,6 +3291,31 @@ class View {
     this.clear();
     this.parentElement.insertAdjacentHTML('afterbegin', markup);
   }
+  update(data) {
+    this.data = data; //model is setting data in recipe object and that object is shared in this so basically recipe object is in data
+    const newMarkup = this.generateMarkup(); //will only change the updates not updating full markup again
+    const newDOM = document.createRange().createContextualFragment(newMarkup); //create virtual dom which will have the changed markup and form an object of it
+    const newElements = Array.from(newDOM.querySelectorAll('*')); //converting Nodemap to array
+    const curElements = Array.from(this.parentElement.querySelectorAll('*'));
+    // console.log(newElement);
+    // console.log(curElement);
+    newElements.forEach((newEl, i) => {
+      const curEl = curElements[i];
+      // console.log(curEl, newEl.isEqualNode(curEl));
+
+      // Updates changed TEXT
+      if (!newEl.isEqualNode(curEl) && newEl.firstChild?.nodeValue.trim() !== '' //changes text directly
+      ) {
+        // console.log('💥', newEl.firstChild.nodeValue.trim());
+        curEl.textContent = newEl.textContent;
+      }
+
+      // Updates changed ATTRIBUES
+      if (!newEl.isEqualNode(curEl)) Array.from(newEl.attributes).forEach(attr => curEl.setAttribute(attr.name, attr.value) //replacing attributes else we will have problem like getting only 3 and 5 for serving
+      );
+    });
+  }
+
   clear() {
     //clears the field
     this.parentElement.innerHTML = '';
@@ -3345,9 +3417,11 @@ class Resultsview extends _View.default {
   }
   generateMarkupPreview(result) {
     //using result object which is with title,id,image and publisher
+
+    const id = window.location.hash.slice(1);
     return `
     <li class="preview">
-        <a class="preview__link " href="#${result.id}">
+        <a class="preview__link ${result.id === id ? 'preview__link--active' : ''} " href="#${result.id}">
         <figure class="preview__fig">
             <img src="${result.image}" alt="${result.title}" />
         </figure>

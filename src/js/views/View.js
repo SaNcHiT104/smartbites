@@ -12,6 +12,35 @@ export default class View {
     this.clear();
     this.parentElement.insertAdjacentHTML('afterbegin', markup);
   }
+
+  update(data) {
+    this.data = data; //model is setting data in recipe object and that object is shared in this so basically recipe object is in data
+    const newMarkup = this.generateMarkup(); //will only change the updates not updating full markup again
+    const newDOM = document.createRange().createContextualFragment(newMarkup); //create virtual dom which will have the changed markup and form an object of it
+    const newElements = Array.from(newDOM.querySelectorAll('*')); //converting Nodemap to array
+    const curElements = Array.from(this.parentElement.querySelectorAll('*'));
+    // console.log(newElement);
+    // console.log(curElement);
+    newElements.forEach((newEl, i) => {
+      const curEl = curElements[i];
+      // console.log(curEl, newEl.isEqualNode(curEl));
+
+      // Updates changed TEXT
+      if (
+        !newEl.isEqualNode(curEl) &&
+        newEl.firstChild?.nodeValue.trim() !== '' //changes text directly
+      ) {
+        // console.log('💥', newEl.firstChild.nodeValue.trim());
+        curEl.textContent = newEl.textContent;
+      }
+
+      // Updates changed ATTRIBUES
+      if (!newEl.isEqualNode(curEl))
+        Array.from(newEl.attributes).forEach(
+          attr => curEl.setAttribute(attr.name, attr.value) //replacing attributes else we will have problem like getting only 3 and 5 for serving
+        );
+    });
+  }
   clear() {
     //clears the field
     this.parentElement.innerHTML = '';

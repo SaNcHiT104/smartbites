@@ -16,6 +16,15 @@ class RecipeView extends View {
     //publisher subscriber pattern
     ['hashchange', 'load'].forEach(ev => window.addEventListener(ev, handler));
   }
+
+  addHandlerAddBookMark(handler) {
+    this.parentElement.addEventListener('click', function (e) {
+      e.preventDefault();
+      const btn = e.target.closest('.btn--bookmark'); //if someone click on svg
+      if (!btn) return;
+      handler();
+    });
+  }
   addHandlerUpdateServings(handler) {
     this.parentElement.addEventListener('click', function (e) {
       e.preventDefault();
@@ -30,6 +39,7 @@ class RecipeView extends View {
     });
   }
   generateMarkup() {
+    // console.log(this.data.sourceUrl);
     return `
     <figure class="recipe__fig">
     <img src="${this.data.image}" alt="${
@@ -80,9 +90,11 @@ class RecipeView extends View {
     <div class="recipe__user-generated">
 
     </div>
-    <button class="btn--round">
+    <button class="btn--round btn--bookmark">
       <svg class="">
-        <use href="${icons}#icon-bookmark-fill"></use>
+        <use href="${icons}#icon-bookmark${
+      this.data.bookmarked ? '-fill' : ''
+    }"></use>
       </svg>
     </button>
   </div>

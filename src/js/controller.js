@@ -22,6 +22,7 @@ const controlRecipes = async function () {
     if (!id) return;
     recipeView.renderSpinner(); //loading animation until we fetch the data
     //load recipe
+    resultsView.update(model.getSearchResultsPage()); //highlight the menu page again if we use render
     await model.loadRecipe(id);
     //rendering recipie
     recipeView.render(model.state.recipe);
@@ -59,13 +60,27 @@ const controlServings = function (update) {
   //update the recipe sevings (in state)
   model.updateServings(update);
   // update the recupe views
-  recipeView.render(model.state.recipe);
+  // recipeView.render(model.state.recipe); causing flickering of images agian and again
+  recipeView.update(model.state.recipe);
+};
+
+//to add bookmark
+
+const addBookMark = function () {
+  if (!model.state.recipe.bookmarked) {
+    model.addBookMarks(model.state.recipe);
+  } else {
+    model.removeBookMark(model.state.recipe.id);
+  }
+  // console.log(model.state.recipe);
+  recipeView.update(model.state.recipe);
 };
 
 const init = function () {
   //publisher subscriber pattern
   recipeView.addHandlerRender(controlRecipes);
   recipeView.addHandlerUpdateServings(controlServings);
+  recipeView.addHandlerAddBookMark(addBookMark);
   searchView.addHandlerSearch(controlSearchResults);
   paginationView.addHandlerClick(controlPagination);
 };
