@@ -1,6 +1,6 @@
 //model js is implemented to interact with api and return it to controller
 import { async } from 'regenerator-runtime';
-import { API_URL } from './config';
+import { API_URL, RES_PER_PAGE } from './config';
 import { getJSON } from './helper';
 
 export const state = {
@@ -8,6 +8,8 @@ export const state = {
   search: {
     query: '', //stores the query
     results: [],
+    resultsPerPage: RES_PER_PAGE, //getting from config
+    page: 1,
   },
 };
 //fetching data from api
@@ -27,7 +29,7 @@ export const loadRecipe = async function (id) {
       ingredients: recipe.ingredients,
     };
   } catch (err) {
-    console.log(err);
+    // console.log(err);
     throw err; //getting error from helper and throwing it to controller
   }
 };
@@ -49,4 +51,11 @@ export const loadSearchResults = async function (query) {
     // console.log(err);
     throw err; //getting error from helper and throwing it to controller
   }
+};
+//pagination of all results
+export const getSearchResultsPage = function (page = state.search.page) {
+  state.search.page = page;
+  const start = (page - 1) * state.search.resultsPerPage; //0 for page 1
+  const end = page * state.search.resultsPerPage; //10
+  return state.search.results.slice(start, end); //0 to 9 loaded;
 };
