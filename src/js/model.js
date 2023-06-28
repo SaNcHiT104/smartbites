@@ -18,6 +18,7 @@ export const loadRecipe = async function (id) {
   try {
     const data = await getJSON(`${API_URL}${id}`);
     const { recipe } = data.data; //new object to  get rid of underscores
+    // console.log(recipe);
     state.recipe = {
       id: recipe.id,
       title: recipe.title,
@@ -58,4 +59,12 @@ export const getSearchResultsPage = function (page = state.search.page) {
   const start = (page - 1) * state.search.resultsPerPage; //0 for page 1
   const end = page * state.search.resultsPerPage; //10
   return state.search.results.slice(start, end); //0 to 9 loaded;
+};
+
+export const updateServings = function (newServings) {
+  state.recipe.ingredients.forEach(ing => {
+    ing.quantity = (ing.quantity * newServings) / state.recipe.servings;
+    //newQt = oldQty*newServings/oldServings
+  });
+  state.recipe.servings = newServings;
 };

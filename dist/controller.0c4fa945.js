@@ -446,9 +446,18 @@ const controlPagination = function (goTo) {
   //rendering changing pagination buttons
   _paginationView.default.render(model.state.search);
 };
+
+//to control serving
+const controlServings = function (update) {
+  //update the recipe sevings (in state)
+  model.updateServings(update);
+  // update the recupe views
+  _recipeView.default.render(model.state.recipe);
+};
 const init = function () {
   //publisher subscriber pattern
   _recipeView.default.addHandlerRender(controlRecipes);
+  _recipeView.default.addHandlerUpdateServings(controlServings);
   _searchView.default.addHandlerSearch(controlSearchResults);
   _paginationView.default.addHandlerClick(controlPagination);
 };
@@ -1916,7 +1925,7 @@ module.exports = typeof Bun == 'function' && Bun && typeof Bun.version == 'strin
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.state = exports.loadSearchResults = exports.loadRecipe = exports.getSearchResultsPage = void 0;
+exports.updateServings = exports.state = exports.loadSearchResults = exports.loadRecipe = exports.getSearchResultsPage = void 0;
 var _regeneratorRuntime = require("regenerator-runtime");
 var _config = require("./config");
 var _helper = require("./helper");
@@ -1943,6 +1952,7 @@ const loadRecipe = async function (id) {
     const {
       recipe
     } = data.data; //new object to  get rid of underscores
+    // console.log(recipe);
     state.recipe = {
       id: recipe.id,
       title: recipe.title,
@@ -1988,6 +1998,15 @@ const getSearchResultsPage = function () {
   return state.search.results.slice(start, end); //0 to 9 loaded;
 };
 exports.getSearchResultsPage = getSearchResultsPage;
+const updateServings = function (newServings) {
+  state.recipe.ingredients.forEach(ing => {
+    ing.quantity = ing.quantity * newServings / state.recipe.servings;
+    //newQt = oldQty*newServings/oldServings
+  });
+
+  state.recipe.servings = newServings;
+};
+exports.updateServings = updateServings;
 },{"regenerator-runtime":"e155e0d3930b156f86c48e8d05522b16","./config":"09212d541c5c40ff2bd93475a904f8de","./helper":"ca5e72bede557533b2de19db21a2a688"}],"e155e0d3930b156f86c48e8d05522b16":[function(require,module,exports) {
 /**
  * Copyright (c) 2014-present, Facebook, Inc.
@@ -2821,6 +2840,19 @@ class RecipeView extends _View.default {
     //publisher subscriber pattern
     ['hashchange', 'load'].forEach(ev => window.addEventListener(ev, handler));
   }
+  addHandlerUpdateServings(handler) {
+    this.parentElement.addEventListener('click', function (e) {
+      e.preventDefault();
+      const btn = e.target.closest('.btn--update-servings');
+      // console.log(btn);
+      if (!btn) return;
+      const updateTo = +btn.dataset.updateTo; //getting update-to class
+      // console.log(updateTo);
+      if (updateTo > 0 && updateTo <= 10) {
+        handler(updateTo);
+      }
+    });
+  }
   generateMarkup() {
     return `
     <figure class="recipe__fig">
@@ -2846,14 +2878,14 @@ class RecipeView extends _View.default {
       <span class="recipe__info-text">servings</span>
 
       <div class="recipe__info-buttons">
-        <button class="btn--tiny btn--increase-servings">
+        <button class="btn--tiny btn--update-servings" data-update-to="${this.data.servings - 1}">
           <svg>
             <use href="${_icons.default}#icon-minus-circle"></use>
           </svg>
         </button>
-        <button class="btn--tiny btn--increase-servings">
+        <button class="btn--tiny btn--update-servings" data-update-to="${this.data.servings + 1}">
           <svg>
-            <use href="${_icons.default}#icon-plus-circle"></use>
+            <use href="${_icons.default}#icon-plus-circle"></use> 
           </svg>
         </button>
       </div>
