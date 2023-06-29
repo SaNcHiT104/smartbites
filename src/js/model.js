@@ -1,7 +1,7 @@
 //model js is implemented to interact with api and return it to controller
 import { async } from 'regenerator-runtime';
-import { API_URL, RES_PER_PAGE } from './config';
-import { getJSON } from './helper';
+import { API_URL, RES_PER_PAGE, KEY } from './config';
+import { getJSON, sendJSON } from './helper';
 
 export const state = {
   recipe: {}, //recipe object;
@@ -13,23 +13,29 @@ export const state = {
   },
   bookmarks: [],
 };
+//creating recipe object
+const createRecipeObject = function (data) {
+  const { recipe } = data.data; //new object to  get rid of underscores
+  return {
+    id: recipe.id,
+    title: recipe.title,
+    publisher: recipe.publisher,
+    sourceUrl: recipe.source_url,
+    image: recipe.image_url,
+    servings: recipe.servings,
+    cookingTime: recipe.cooking_time,
+    ingredients: recipe.ingredients,
+    ...(recipe.key && { key: recipe.key }), //if recipe key is their then we add key to our object
+  };
+};
 //fetching data from api
 //load recipe changes the state recipe
 export const loadRecipe = async function (id) {
   try {
     const data = await getJSON(`${API_URL}${id}`);
-    const { recipe } = data.data; //new object to  get rid of underscores
+
     // console.log(recipe);
-    state.recipe = {
-      id: recipe.id,
-      title: recipe.title,
-      publisher: recipe.publisher,
-      sourceUrl: recipe.source_url,
-      image: recipe.image_url,
-      servings: recipe.servings,
-      cookingTime: recipe.cooking_time,
-      ingredients: recipe.ingredients,
-    };
+    state.recipe = createRecipeObject(data);
     if (state.bookmarks.some(bookmark => bookmark.id == id)) {
       //iterating over bookamrks array and checking the id
       state.recipe.bookmarked = true;
@@ -108,4 +114,38 @@ init();
 //only for developing the site
 const clearBookMarks = function () {
   localStorage.clear('bookmarks');
+};
+
+//request to upload new recipe
+export const uploadRecipe = async function (newRecipe) {
+  //changing the format of newRecipe just how we get the data setting newData same in that format
+  try {
+    const ingredients = Object.entries(newRecipe)
+      .filter(entry => entry[0].startsWith('ingredient') && entry[1] != '')
+      .map(ing => {
+        const ingArr = ing[1].replaceAll(' ', '').split(',');
+        //checking arr has three parts or not
+        if (ingArr.length != 3)
+          throw new Error(
+            'Wrong ingredient format! Please use the correct Format'
+          );
+        const [quantity, unit, description] = ingArr;
+        return { quantity: quantity ? +quantity : null, unit, description };
+      });
+    const recipe = {
+      title: newRecipe.title,
+      source_url: newRecipe.sourceUrl,
+      image_url: newRecipe.image,
+      publisher: newRecipe.publisher,
+      cooking_time: +newRecipe.cookingTime,
+      servings: +newRecipe.servings,
+      ingredients,
+    };
+    const data = await sendJSON(`${API_URL}?key=${KEY}`, recipe); //this will send us the data back also
+
+    state.recipe = createRecipeObject(data);
+    addBookMarks(state.recipe);
+  } catch (err) {
+    throw err;
+  }
 };
