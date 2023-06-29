@@ -8,6 +8,9 @@ class BookMarks extends View {
   parentElement = document.querySelector('.bookmarks__list');
   errorMessage = 'No bookmarks yet!Find a recipe and Bookmark it :)';
   message = '';
+  addHandlerRender(handler) {
+    window.addEventListener('load', handler);
+  }
   generateMarkup() {
     return this.data.map(this.generateMarkupPreview).join('');
   }

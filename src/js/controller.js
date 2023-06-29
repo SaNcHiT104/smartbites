@@ -80,9 +80,13 @@ const addBookMark = function () {
   //render in bookmark
   bookmarksView.render(model.state.bookmarks);
 };
-
+const controlBookmarks = function () {
+  //error loading bookmarks in starting, problem in update
+  bookmarksView.render(model.state.bookmarks);
+};
 const init = function () {
   //publisher subscriber pattern
+  bookmarksView.addHandlerRender(controlBookmarks);
   recipeView.addHandlerRender(controlRecipes);
   recipeView.addHandlerUpdateServings(controlServings);
   recipeView.addHandlerAddBookMark(addBookMark);

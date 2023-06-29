@@ -473,8 +473,13 @@ const addBookMark = function () {
   //render in bookmark
   _bookmarksView.default.render(model.state.bookmarks);
 };
+const controlBookmarks = function () {
+  //error loading bookmarks in starting, problem in update
+  _bookmarksView.default.render(model.state.bookmarks);
+};
 const init = function () {
   //publisher subscriber pattern
+  _bookmarksView.default.addHandlerRender(controlBookmarks);
   _recipeView.default.addHandlerRender(controlRecipes);
   _recipeView.default.addHandlerUpdateServings(controlServings);
   _recipeView.default.addHandlerAddBookMark(addBookMark);
@@ -2044,6 +2049,7 @@ const addBookMarks = function (recipe) {
 
   //mark current recipe as bookmarked
   if (state.recipe.id == recipe.id) state.recipe.bookmarked = true;
+  persistBookmarks(); //localstorage setting
 };
 exports.addBookMarks = addBookMarks;
 const removeBookMark = function (id) {
@@ -2051,8 +2057,22 @@ const removeBookMark = function (id) {
   state.bookmarks.splice(index, 1);
   //mark current recipe as removeBookmarked
   if (state.recipe.id == id) state.recipe.bookmarked = false;
+  persistBookmarks(); //local storage setting
 };
 exports.removeBookMark = removeBookMark;
+const persistBookmarks = function () {
+  localStorage.setItem('bookmarks', JSON.stringify(state.bookmarks));
+};
+//gettting initial conditions back
+const init = function () {
+  const storage = localStorage.getItem('bookmarks');
+  if (storage) state.bookmarks = JSON.parse(storage);
+};
+init();
+//only for developing the site
+const clearBookMarks = function () {
+  localStorage.clear('bookmarks');
+};
 },{"regenerator-runtime":"e155e0d3930b156f86c48e8d05522b16","./config":"09212d541c5c40ff2bd93475a904f8de","./helper":"ca5e72bede557533b2de19db21a2a688"}],"e155e0d3930b156f86c48e8d05522b16":[function(require,module,exports) {
 /**
  * Copyright (c) 2014-present, Facebook, Inc.
@@ -3536,6 +3556,9 @@ class BookMarks extends _View.default {
   parentElement = document.querySelector('.bookmarks__list');
   errorMessage = 'No bookmarks yet!Find a recipe and Bookmark it :)';
   message = '';
+  addHandlerRender(handler) {
+    window.addEventListener('load', handler);
+  }
   generateMarkup() {
     return this.data.map(this.generateMarkupPreview).join('');
   }
