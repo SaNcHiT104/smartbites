@@ -394,6 +394,7 @@ var _recipeView = _interopRequireDefault(require("./views/recipeView.js"));
 var _searchView = _interopRequireDefault(require("./views/searchView.js"));
 var _resultsView = _interopRequireDefault(require("./views/resultsView.js"));
 var _paginationView = _interopRequireDefault(require("./views/paginationView.js"));
+var _bookmarksView = _interopRequireDefault(require("./views/bookmarksView.js"));
 var _regeneratorRuntime = require("regenerator-runtime");
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 function _getRequireWildcardCache(nodeInterop) { if (typeof WeakMap !== "function") return null; var cacheBabelInterop = new WeakMap(); var cacheNodeInterop = new WeakMap(); return (_getRequireWildcardCache = function (nodeInterop) { return nodeInterop ? cacheNodeInterop : cacheBabelInterop; })(nodeInterop); }
@@ -416,6 +417,7 @@ const controlRecipes = async function () {
     _recipeView.default.renderSpinner(); //loading animation until we fetch the data
     //load recipe
     _resultsView.default.update(model.getSearchResultsPage()); //highlight the menu page again if we use render
+    _bookmarksView.default.update(model.state.bookmarks); //hihglighting selected recipe in bookmark page
     await model.loadRecipe(id);
     //rendering recipie
     _recipeView.default.render(model.state.recipe);
@@ -467,6 +469,9 @@ const addBookMark = function () {
   }
   // console.log(model.state.recipe);
   _recipeView.default.update(model.state.recipe);
+
+  //render in bookmark
+  _bookmarksView.default.render(model.state.bookmarks);
 };
 const init = function () {
   //publisher subscriber pattern
@@ -477,7 +482,7 @@ const init = function () {
   _paginationView.default.addHandlerClick(controlPagination);
 };
 init();
-},{"core-js/modules/web.immediate.js":"140df4f8e97a45c53c66fead1f5a9e92","./model.js":"aabf248f40f7693ef84a0cb99f385d1f","./views/recipeView.js":"bcae1aced0301b01ccacb3e6f7dfede8","./views/searchView.js":"c5d792f7cac03ef65de30cc0fbb2cae7","regenerator-runtime":"e155e0d3930b156f86c48e8d05522b16","./views/resultsView.js":"eacdbc0d50ee3d2819f3ee59366c2773","./views/paginationView.js":"d2063f3e7de2e4cdacfcb5eb6479db05"}],"140df4f8e97a45c53c66fead1f5a9e92":[function(require,module,exports) {
+},{"core-js/modules/web.immediate.js":"140df4f8e97a45c53c66fead1f5a9e92","./model.js":"aabf248f40f7693ef84a0cb99f385d1f","./views/recipeView.js":"bcae1aced0301b01ccacb3e6f7dfede8","./views/searchView.js":"c5d792f7cac03ef65de30cc0fbb2cae7","regenerator-runtime":"e155e0d3930b156f86c48e8d05522b16","./views/resultsView.js":"eacdbc0d50ee3d2819f3ee59366c2773","./views/paginationView.js":"d2063f3e7de2e4cdacfcb5eb6479db05","./views/bookmarksView.js":"7ed9311e216aa789713f70ebeec3ed40"}],"140df4f8e97a45c53c66fead1f5a9e92":[function(require,module,exports) {
 // TODO: Remove this module from `core-js@4` since it's split to modules listed below
 require('../modules/web.clear-immediate');
 require('../modules/web.set-immediate');
@@ -2032,6 +2037,9 @@ const updateServings = function (newServings) {
 exports.updateServings = updateServings;
 const addBookMarks = function (recipe) {
   //add in bookmarks arr;
+  if (state.bookmarks.length > 10) {
+    state.bookmarks.splice(0, 1);
+  }
   state.bookmarks.push(recipe);
 
   //mark current recipe as bookmarked
@@ -3508,6 +3516,49 @@ class PaginationView extends _View.default {
   }
 }
 var _default = new PaginationView();
+exports.default = _default;
+},{"url:../../img/icons.svg":"ca6d19145bb6c7d87837cf88e575748e","./View.js":"61b7a1b097e16436be3d54c2f1828c73"}],"7ed9311e216aa789713f70ebeec3ed40":[function(require,module,exports) {
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.default = void 0;
+var _icons = _interopRequireDefault(require("url:../../img/icons.svg"));
+var _View = _interopRequireDefault(require("./View.js"));
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+//file to show bookmarks
+//view have all function that are called again and again
+//ensure all elements have same name
+//importing icons
+
+class BookMarks extends _View.default {
+  parentElement = document.querySelector('.bookmarks__list');
+  errorMessage = 'No bookmarks yet!Find a recipe and Bookmark it :)';
+  message = '';
+  generateMarkup() {
+    return this.data.map(this.generateMarkupPreview).join('');
+  }
+  generateMarkupPreview(result) {
+    //using result object which is with title,id,image and publisher
+
+    const id = window.location.hash.slice(1);
+    return `
+    <li class="preview">
+        <a class="preview__link ${result.id === id ? 'preview__link--active' : ''} " href="#${result.id}">
+        <figure class="preview__fig">
+            <img src="${result.image}" alt="${result.title}" />
+        </figure>
+        <div class="preview__data">
+            <h4 class="preview__title">${result.title}</h4>
+            <p class="preview__publisher">${result.publisher}</p>
+        </div>
+        </a>
+    </li>
+    `;
+  }
+}
+var _default = new BookMarks();
 exports.default = _default;
 },{"url:../../img/icons.svg":"ca6d19145bb6c7d87837cf88e575748e","./View.js":"61b7a1b097e16436be3d54c2f1828c73"}]},{},["933c4f76d07f5afcbc3a99eefa3052f7","27822c10e53f4825ec6964b0722da2c3","175e469a7ea7db1c8c0744d04372621f"], null)
 

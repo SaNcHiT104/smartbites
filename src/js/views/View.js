@@ -1,4 +1,5 @@
 //importing icons
+
 import icons from 'url:../../img/icons.svg';
 //common in all view
 export default class View {

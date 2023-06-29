@@ -5,6 +5,7 @@ import resultsView from './views/resultsView.js';
 import paginationView from './views/paginationView.js';
 import 'core-js/stable'; //for all the browser
 import 'regenerator-runtime/runtime';
+import bookmarksView from './views/bookmarksView.js';
 import { async } from 'regenerator-runtime';
 
 // https://forkify-api.herokuapp.com/v2
@@ -23,6 +24,7 @@ const controlRecipes = async function () {
     recipeView.renderSpinner(); //loading animation until we fetch the data
     //load recipe
     resultsView.update(model.getSearchResultsPage()); //highlight the menu page again if we use render
+    bookmarksView.update(model.state.bookmarks); //hihglighting selected recipe in bookmark page
     await model.loadRecipe(id);
     //rendering recipie
     recipeView.render(model.state.recipe);
@@ -74,6 +76,9 @@ const addBookMark = function () {
   }
   // console.log(model.state.recipe);
   recipeView.update(model.state.recipe);
+
+  //render in bookmark
+  bookmarksView.render(model.state.bookmarks);
 };
 
 const init = function () {

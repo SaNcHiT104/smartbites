@@ -78,6 +78,9 @@ export const updateServings = function (newServings) {
 //adding bookmarks
 export const addBookMarks = function (recipe) {
   //add in bookmarks arr;
+  if (state.bookmarks.length > 10) {
+    state.bookmarks.splice(0, 1);
+  }
   state.bookmarks.push(recipe);
 
   //mark current recipe as bookmarked
