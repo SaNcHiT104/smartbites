@@ -94,6 +94,11 @@ const controlAddRecipe = async function (newRecipe) {
     recipeView.render(model.state.recipe);
     //render message
     addRecipeView.renderMessage();
+    //render bookmark view
+    bookmarksView.render(model.state.bookmarks);
+
+    //change id in URL
+    window.history.pushState(null, '', `#${model.state.recipe.id}`);
     //close form
     setTimeout(function () {
       addRecipeView.toggleWindow(); //we need to show success message
